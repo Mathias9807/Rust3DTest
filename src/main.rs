@@ -27,25 +27,35 @@ fn draw_loop(d: &mut Display) {
 	}
 
 	unsafe {
-		draw_tri(d, point2D(0.0, 0.7), point2D(-0.7, -0.0 + 0.5 * (t as f32 / 10.0).sin()), point2D(0.7, -0.7));
+		let v0 = Vertex::vertex(0.0, 0.7, 0.0);
+		let v1 = Vertex::vertex(-0.7, -0.0 + 0.5 * (t as f32 / 10.0).sin(), 0.0);
+		let v2 = Vertex::vertex(0.7, -0.7, 0.0);
+		let v3 = Vertex::vertex(-1.0, -0.7, 0.0);
+		let v4 = Vertex::vertex(0.0, -1.0, 0.0);
+		draw_tri(d, v0, v1, v2);
 
-		draw_tri(d, point2D(-1.0, -0.7), point2D(-0.7, -0.0 + 0.5 * (t as f32 / 10.0).sin()), point2D(0.7, -0.7));
+		draw_tri(d, v3, v1, v2);
 
-		draw_tri(d, point2D(-1.0, -0.7), point2D(0.0, -1.0), point2D(0.7, -0.7));
+		draw_tri(d, v3, v4, v2);
 	}
 }
 
-fn draw_scanline(d: &mut Display, a: f32, b: f32, y: u32) {
+fn draw_scanline(d: &mut Display, a: f32, b: f32, y: u32, c1: Point3D, c2: Point3D) {
 	let (min, max): (u32, u32);
 	if a > b { min = b.round() as u32; max = a.round() as u32; }
 	else { min = a.round() as u32; max = b.round() as u32; }
 	for x in min..max {
-		d[(y * WIDTH + x) as usize].1 = 255;
+		let inter = (x - min) as f32 / (max - min) as f32;
+		let c = lerp3(c1, c2, inter);
+		d[(y * WIDTH + x) as usize].0 = (c.x*255.0) as u8;
+		d[(y * WIDTH + x) as usize].1 = (c.y*255.0) as u8;
+		d[(y * WIDTH + x) as usize].2 = (c.z*255.0) as u8;
 	}
 }
 
-fn draw_tri(d: &mut Display, a: Point2D, b: Point2D, c: Point2D) {
-	let mut list = [toDCoords(a), toDCoords(b), toDCoords(c)];
+fn draw_tri(d: &mut Display, a: Vertex, b: Vertex, c: Vertex) {
+	let mut list = [toDCoords(a.point2D()), toDCoords(b.point2D()),
+	    toDCoords(c.point2D())];
 	if list[0].y > list[1].y { list.swap(0, 1); } // Bubblesort lol
 	if list[0].y > list[2].y { list.swap(0, 2); }
 	if list[1].y > list[2].y { list.swap(1, 2); }
@@ -58,14 +68,14 @@ fn draw_tri(d: &mut Display, a: Point2D, b: Point2D, c: Point2D) {
 		let v_b = (y as f32 - list[0].y) / (list[1].y - list[0].y);
 		let a = lerp(list[0].x as f32, list[2].x as f32, v_a);
 		let b = lerp(list[0].x as f32, list[1].x, v_b);
-		draw_scanline(d, a, b, y);
+		draw_scanline(d, a, b, y, point3D(0.0,0.0,0.0), point3D(1.0,1.0,1.0));
 	}
 	for y in list[1].y.round() as u32..list[2].y.round() as u32 {
 		let v_a = (y as f32 - list[1].y) / (list[2].y - list[1].y);
 		let v_b = (y as f32 - list[1].y) / (list[2].y - list[1].y);
 		let a = lerp(list[1].x as f32, list[2].x as f32, v_a);
 		let b = lerp(mid, list[2].x as f32, v_b);
-		draw_scanline(d, a, b, y);
+		draw_scanline(d, a, b, y, point3D(0.0,0.0,0.0), point3D(1.0,1.0,1.0));
 	}
 
 	d[(list[0].y as u32 * WIDTH + list[0].x as u32) as usize].2 = 255;
