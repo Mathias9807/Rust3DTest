@@ -41,8 +41,8 @@ impl ops::Div<f32> for Point2D {
 }
 pub const fn point2D(x: f32, y: f32) -> Point2D { Point2D{x: x, y: y} }
 
-pub const MIN_SCREEN: Point2D = point2D(-1.0, -1.0);
-pub const MAX_SCREEN: Point2D = point2D( 1.0,  1.0);
+pub const MIN_SCREEN: Point2D = point2D(-5.0, -5.0);
+pub const MAX_SCREEN: Point2D = point2D( 5.0,  5.0);
 
 pub fn toDCoords(p: Point2D) -> Point2D {
 	(p - MIN_SCREEN) / (MAX_SCREEN - MIN_SCREEN)

@@ -9,47 +9,60 @@ use std::time::Duration;
 
 mod point;
 use point::*;
+mod model;
+use model::*;
 
-pub const WIDTH: u32 = 64;
-pub const HEIGHT: u32 = 48;
-pub const SCALE: u32 = 10;
+pub const WIDTH: u32 = 640;
+pub const HEIGHT: u32 = 480;
+pub const SCALE: u32 = 1;
 
 type Canvas = sdl2::render::Canvas<sdl2::video::Window>;
 type Display =  [(u8, u8, u8); (WIDTH * HEIGHT) as usize];
 
-fn draw_loop(d: &mut Display) {
-	static mut t: u32 = 0;
-	unsafe { t += 1; }
+fn draw_loop(d: &mut Display, teapot: &Model) {
+	static mut T: u32 = 0;
+	unsafe { T += 1; }
 
 	for i in 0..(WIDTH*HEIGHT) as usize {
 		let perc = i as f32 / (WIDTH*HEIGHT) as f32;
-		d[i] = ((i as u32 % WIDTH) as u8, 0, 0);
+		d[i] = ((i as u32 * 256 / (WIDTH*HEIGHT)) as u8, 0, 0);
 	}
 
+	draw_model(d, teapot);
+
 	unsafe {
-		let v0 = Vertex::vertex(0.0, 0.7, 0.0);
-		let v1 = Vertex::vertex(-0.7, -0.0 + 0.5 * (t as f32 / 10.0).sin(), 0.0);
-		let v2 = Vertex::vertex(0.7, -0.7, 0.0);
-		let v3 = Vertex::vertex(-1.0, -0.7, 0.0);
-		let v4 = Vertex::vertex(0.0, -1.0, 0.0);
-		draw_tri(d, v0, v1, v2);
+		// let v0 = Vertex::vertex(0.0, 0.7, 0.0);
+		// let v1 = Vertex::vertex(-0.7, -0.0 + 0.5 * (T as f32 / 100.0).sin(), 0.0);
+		// let v2 = Vertex::vertex(0.7, -0.7, 0.0);
+		// let v3 = Vertex::vertex(-1.0, -0.7, 0.0);
+		// let v4 = Vertex::vertex(0.0, -1.0, 0.0);
+		// draw_tri(d, v0, v1, v2);
 
-		draw_tri(d, v3, v1, v2);
+		// draw_tri(d, v3, v1, v2);
 
-		draw_tri(d, v3, v4, v2);
+		// draw_tri(d, v3, v4, v2);
+	}
+}
+
+fn draw_model(d: &mut Display, model: &Model) {
+	for f in &model.faces {
+		draw_tri(d, model.verts[f.0], model.verts[f.1], model.verts[f.2]);
 	}
 }
 
 fn draw_scanline(d: &mut Display, a: f32, b: f32, y: u32, c1: Point3D, c2: Point3D) {
-	let (min, max): (u32, u32);
-	if a > b { min = b.round() as u32; max = a.round() as u32; }
-	else { min = a.round() as u32; max = b.round() as u32; }
+	let (mut min, mut max): (i32, i32);
+	if a > b { min = b.round() as i32; max = a.round() as i32; }
+	else { min = a.round() as i32; max = b.round() as i32; }
+	if y >= HEIGHT { return }
+	min = min.max(0);
+	max = max.min(WIDTH as i32 - 1);
 	for x in min..max {
 		let inter = (x - min) as f32 / (max - min) as f32;
 		let c = lerp3(c1, c2, inter);
-		d[(y * WIDTH + x) as usize].0 = (c.x*255.0) as u8;
-		d[(y * WIDTH + x) as usize].1 = (c.y*255.0) as u8;
-		d[(y * WIDTH + x) as usize].2 = (c.z*255.0) as u8;
+		d[(y * WIDTH + x as u32) as usize].0 = (c.x*255.0) as u8;
+		d[(y * WIDTH + x as u32) as usize].1 = (c.y*255.0) as u8;
+		d[(y * WIDTH + x as u32) as usize].2 = (c.z*255.0) as u8;
 	}
 }
 
@@ -63,24 +76,20 @@ fn draw_tri(d: &mut Display, a: Vertex, b: Vertex, c: Vertex) {
 	let midV = (list[1].y - list[0].y) / (list[2].y - list[0].y);
 	let mid = lerp(list[0].x as f32, list[2].x as f32, midV);
 
-	for y in list[0].y.round() as u32..list[1].y.round() as u32 {
+	for y in list[0].y.round().max(0.0) as u32..list[1].y.round() as u32 {
 		let v_a = (y as f32 - list[0].y) / (list[2].y - list[0].y);
 		let v_b = (y as f32 - list[0].y) / (list[1].y - list[0].y);
 		let a = lerp(list[0].x as f32, list[2].x as f32, v_a);
 		let b = lerp(list[0].x as f32, list[1].x, v_b);
 		draw_scanline(d, a, b, y, point3D(0.0,0.0,0.0), point3D(1.0,1.0,1.0));
 	}
-	for y in list[1].y.round() as u32..list[2].y.round() as u32 {
+	for y in list[1].y.round().max(0.0) as u32..list[2].y.round() as u32 {
 		let v_a = (y as f32 - list[1].y) / (list[2].y - list[1].y);
 		let v_b = (y as f32 - list[1].y) / (list[2].y - list[1].y);
 		let a = lerp(list[1].x as f32, list[2].x as f32, v_a);
 		let b = lerp(mid, list[2].x as f32, v_b);
 		draw_scanline(d, a, b, y, point3D(0.0,0.0,0.0), point3D(1.0,1.0,1.0));
 	}
-
-	d[(list[0].y as u32 * WIDTH + list[0].x as u32) as usize].2 = 255;
-	d[(list[1].y as u32 * WIDTH + list[1].x as u32) as usize].2 = 255;
-	d[(list[2].y as u32 * WIDTH + list[2].x as u32) as usize].2 = 255;
 }
 
 fn draw_pixel(canvas: &mut Canvas, x: u32, y: u32, rgb: Color) {
@@ -113,6 +122,8 @@ fn main() {
 
 	let mut display = [(0u8, 0u8, 0u8); (WIDTH * HEIGHT) as usize];
 
+	let teapot: Model = Model::load_obj("res/teapot.obj");
+
 	let mut event_pump = sdl_context.event_pump().unwrap();
 	'running: loop {
 		for event in event_pump.poll_iter() {
@@ -125,7 +136,7 @@ fn main() {
 			}
 		}
 		
-		draw_loop(&mut display);
+		draw_loop(&mut display, &teapot);
 
 		for y in 0..HEIGHT {
 			for x in 0..WIDTH {
