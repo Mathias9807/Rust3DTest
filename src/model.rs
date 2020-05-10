@@ -13,8 +13,8 @@ pub struct Model {
 }
 impl Model {
 	pub fn new() -> Model {
-		Model{verts: Vec::<Vertex>::new(),
-			faces: Vec::<(usize, usize, usize)>::new()}
+		Model{verts: Vec::new(),
+			faces: Vec::new()}
 	}
 
 	pub fn load_obj(file: &str) -> Model {
@@ -35,7 +35,7 @@ impl Model {
 			let i2 = captures.get(4).unwrap().as_str();
 
 			if t == "v" {
-				model.verts.push(Vertex::vertex(
+				model.verts.push(Vertex::new(
 					i0.parse().unwrap(),
 					i1.parse().unwrap(),
 					i2.parse().unwrap(),
