@@ -60,7 +60,7 @@ fn draw_scanline(d: &mut Display, a: f32, b: f32, y: u32, c1: Vec3f, c2: Vec3f) 
 	min = min.max(0);
 	max = max.min(WIDTH as i32 - 1);
 	for x in min..max {
-		let inter = (x - min) as f32 / (max - min) as f32;
+		let inter = (x as f32 - a) / (b - a);
 		let c = Vec3f::lerp(c1, c2, inter);
 		d[(y * WIDTH + x as u32) as usize].0 = (c[0]*255.0) as u8;
 		d[(y * WIDTH + x as u32) as usize].1 = (c[1]*255.0) as u8;
