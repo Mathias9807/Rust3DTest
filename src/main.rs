@@ -28,7 +28,12 @@ fn draw_loop(d: &mut Display, teapot: &Model) {
 		d[i] = ((i as u32 * 256 / (WIDTH*HEIGHT)) as u8, 0, 0);
 	}
 
-	draw_model(d, teapot);
+    unsafe {
+        // let mat = Mat4::identity().translate3f((T as f32).sin(), (T as f32).cos(), 0.);
+        let mat = Mat4::identity().rotate(Vec3f([1.,1.,1.]), (T as f32)/5.);
+
+        draw_model(d, teapot, mat);
+    }
 
 	// unsafe {
 	// 	let v0 = Vertex::new(0.0, 0.7, 0.0);
@@ -45,9 +50,15 @@ fn draw_loop(d: &mut Display, teapot: &Model) {
 }
 
 /** Draw a model including model-view-projection matrices */
-fn draw_model(d: &mut Display, model: &Model) {
+fn draw_model(d: &mut Display, model: &Model, mat: Mat4) {
+    let mut proj_vert = model.verts.clone();
+
+    for mut v in &mut proj_vert {
+        v.p = (mat * v.p.vec4f(1.0)).vec3f();
+    }
+
 	for f in &model.faces {
-		draw_tri(d, model.verts[f.0], model.verts[f.1], model.verts[f.2]);
+		draw_tri(d, proj_vert[f.0], proj_vert[f.1], proj_vert[f.2]);
 	}
 }
 
