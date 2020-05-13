@@ -194,6 +194,11 @@ impl Vec3f {
 	pub fn lerp(a: Vec3f, b: Vec3f, v: f32) -> Vec3f {
 		Vec3f([lerp(a[0],b[0],v), lerp(a[1],b[1],v), lerp(a[2],b[2],v)])
 	}
+    pub fn cross(&self, v: Vec3f) -> Vec3f {
+        Vec3f([self[1]*v[2] - self[2]*v[1],
+              self[2]*v[0] - self[0]*v[2],
+              self[0]*v[1] - self[1]*v[0]])
+    }
 	pub fn vec2f(&self) -> Vec2f { Vec2f([self[0], self[1]]) }
 	pub fn vec4f(&self, a: f32) -> Vec4f { Vec4f([self.0[0], self.0[1], self.0[2], a]) }
 }

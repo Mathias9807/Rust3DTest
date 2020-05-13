@@ -49,6 +49,9 @@ impl GraphicsState<'_> {
 
     /** Rasterize triangle a,b,c */
     pub fn draw_tri(&mut self, a: Vertex, b: Vertex, c: Vertex) {
+        // Check vertex order, cull if clockwise
+        if (b.p - a.p).cross(c.p - a.p)[2] < 0. { return }
+
         let mut list = [toDCoords(a.p.vec2f()), toDCoords(b.p.vec2f()),
             toDCoords(c.p.vec2f())];
         if list[0][1] > list[1][1] { list.swap(0, 1); } // Bubblesort lol
