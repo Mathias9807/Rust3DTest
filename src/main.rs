@@ -89,6 +89,8 @@ fn main() {
     VecTest();
 
 	let mut event_pump = sdl_context.event_pump().unwrap();
+    let mut frames: u32 = 0;
+    let mut now = Instant::now();
 	'running: loop {
 		for event in event_pump.poll_iter() {
 			match event {
@@ -110,7 +112,18 @@ fn main() {
 		}
 
 		canvas.present();
-		::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        frames += 1;
+
+        // Check how long it's been since last FPS count
+        let elapsed = now.elapsed().as_millis() as f32 / 1000.;
+        if elapsed > 1. {
+            print!("\r\u{001b}[2KFPS: {},\tSPF: {}", frames as f32 / elapsed,
+                   elapsed / frames as f32);
+            std::io::stdout().flush().unwrap();
+            now = Instant::now();
+            frames = 0;
+        }
 	}
+    println!("");
 }
 
