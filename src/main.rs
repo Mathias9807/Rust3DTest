@@ -15,9 +15,11 @@ use point::*;
 use model::*;
 use graphics::*;
 
-pub const WIDTH: u32 = 640;
-pub const HEIGHT: u32 = 480;
+pub const WINDOW_W: u32 = 640;
+pub const WINDOW_H: u32 = 480;
 pub const SCALE: u32 = 1;
+pub const WIDTH: u32 = WINDOW_W / SCALE;
+pub const HEIGHT: u32 = WINDOW_H / SCALE;
 
 type Canvas = sdl2::render::Canvas<sdl2::video::Window>;
 
@@ -62,8 +64,7 @@ fn create_window() -> (sdl2::Sdl, sdl2::VideoSubsystem, sdl2::render::Canvas<sdl
 	let sdl_context = sdl2::init().unwrap();
 	let video_subsystem = sdl_context.video().unwrap();
 
-	let window = video_subsystem.window("Rust 3D Test",
-		WIDTH*SCALE, HEIGHT*SCALE)
+	let window = video_subsystem.window("Rust 3D Test", WINDOW_W, WINDOW_H)
 		.position_centered()
 		.build()
 		.unwrap();
