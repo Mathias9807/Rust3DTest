@@ -54,7 +54,7 @@ impl Mat4 {
             T[i][j] = if i<3 && j<3 { u[i] * u[j] } else { 0. };
         }}
 
-        let mut S = Mat4([
+        let S = Mat4([
             [   0.,  u[2], -u[1], 0.],
             [-u[2],    0.,  u[0], 0.],
             [ u[1], -u[0],    0., 0.],

@@ -5,34 +5,36 @@ extern crate sdl2;
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use std::time::Duration;
+use std::time::Instant;
+use std::io::Write;
 
 mod point;
-use point::*;
 mod model;
+mod graphics;
+use point::*;
 use model::*;
+use graphics::*;
 
 pub const WIDTH: u32 = 640;
 pub const HEIGHT: u32 = 480;
 pub const SCALE: u32 = 1;
 
 type Canvas = sdl2::render::Canvas<sdl2::video::Window>;
-type Display = [(u8, u8, u8); (WIDTH * HEIGHT) as usize];
 
-fn draw_loop(d: &mut Display, teapot: &Model) {
+fn draw_loop(state: &mut GraphicsState, teapot: &Model) {
 	static mut T: u32 = 0;
 	unsafe { T += 1; }
 
 	for i in 0..(WIDTH*HEIGHT) as usize {
 		let perc = i as f32 / (WIDTH*HEIGHT) as f32;
-		d[i] = ((i as u32 * 256 / (WIDTH*HEIGHT)) as u8, 0, 0);
+		state.d[i] = ((i as u32 * 256 / (WIDTH*HEIGHT)) as u8, 0, 0);
 	}
 
     unsafe {
         // let mat = Mat4::identity().translate3f((T as f32).sin(), (T as f32).cos(), 0.);
         let mat = Mat4::identity().rotate(Vec3f([1.,1.,1.]), (T as f32)/5.);
 
-        draw_model(d, teapot, mat);
+        state.draw_model(teapot, mat);
     }
 
 	// unsafe {
@@ -49,62 +51,6 @@ fn draw_loop(d: &mut Display, teapot: &Model) {
 	// }
 }
 
-/** Draw a model including model-view-projection matrices */
-fn draw_model(d: &mut Display, model: &Model, mat: Mat4) {
-    let mut proj_vert = model.verts.clone();
-
-    for mut v in &mut proj_vert {
-        v.p = (mat * v.p.vec4f(1.0)).vec3f();
-    }
-
-	for f in &model.faces {
-		draw_tri(d, proj_vert[f.0], proj_vert[f.1], proj_vert[f.2]);
-	}
-}
-
-/** Draw a horizontal line at row y between points a and b */
-fn draw_scanline(d: &mut Display, a: f32, b: f32, y: u32, c1: Vec3f, c2: Vec3f) {
-	let (mut min, mut max): (i32, i32);
-	if a > b { min = b.round() as i32; max = a.round() as i32; }
-	else { min = a.round() as i32; max = b.round() as i32; }
-	if y >= HEIGHT { return }
-	min = min.max(0);
-	max = max.min(WIDTH as i32 - 1);
-	for x in min..max {
-		let inter = (x as f32 - a) / (b - a);
-		let c = Vec3f::lerp(c1, c2, inter);
-		d[(y * WIDTH + x as u32) as usize].0 = (c[0]*255.0) as u8;
-		d[(y * WIDTH + x as u32) as usize].1 = (c[1]*255.0) as u8;
-		d[(y * WIDTH + x as u32) as usize].2 = (c[2]*255.0) as u8;
-	}
-}
-
-/** Rasterize triangle a,b,c */
-fn draw_tri(d: &mut Display, a: Vertex, b: Vertex, c: Vertex) {
-	let mut list = [toDCoords(a.p.vec2f()), toDCoords(b.p.vec2f()),
-	    toDCoords(c.p.vec2f())];
-	if list[0][1] > list[1][1] { list.swap(0, 1); } // Bubblesort lol
-	if list[0][1] > list[2][1] { list.swap(0, 2); }
-	if list[1][1] > list[2][1] { list.swap(1, 2); }
-
-	let midV = (list[1][1] - list[0][1]) / (list[2][1] - list[0][1]);
-	let mid = lerp(list[0][0] as f32, list[2][0] as f32, midV);
-
-	for y in list[0][1].round().max(0.0) as u32..list[1][1].round() as u32 {
-		let v_a = (y as f32 - list[0][1]) / (list[2][1] - list[0][1]);
-		let v_b = (y as f32 - list[0][1]) / (list[1][1] - list[0][1]);
-		let a = lerp(list[0][0] as f32, list[2][0] as f32, v_a);
-		let b = lerp(list[0][0] as f32, list[1][0], v_b);
-		draw_scanline(d, a, b, y, Vec3f([0.0,0.0,0.0]), Vec3f([1.0,1.0,1.0]));
-	}
-	for y in list[1][1].round().max(0.0) as u32..list[2][1].round() as u32 {
-		let v_a = (y as f32 - list[1][1]) / (list[2][1] - list[1][1]);
-		let v_b = (y as f32 - list[1][1]) / (list[2][1] - list[1][1]);
-		let a = lerp(list[1][0] as f32, list[2][0] as f32, v_a);
-		let b = lerp(mid, list[2][0] as f32, v_b);
-		draw_scanline(d, a, b, y, Vec3f([0.0,0.0,0.0]), Vec3f([1.0,1.0,1.0]));
-	}
-}
 
 fn draw_pixel(canvas: &mut Canvas, x: u32, y: u32, rgb: Color) {
 	canvas.set_draw_color(rgb);
@@ -136,6 +82,8 @@ fn main() {
 
 	let mut display = [(0u8, 0u8, 0u8); (WIDTH * HEIGHT) as usize];
 
+    let mut state = GraphicsState{d: &mut display};
+
 	let teapot: Model = Model::load_obj("res/teapot.obj");
 
     VecTest();
@@ -152,11 +100,11 @@ fn main() {
 			}
 		}
 		
-		draw_loop(&mut display, &teapot);
+		draw_loop(&mut state, &teapot);
 
 		for y in 0..HEIGHT {
 			for x in 0..WIDTH {
-				let c = display[((HEIGHT - y - 1) * WIDTH + x) as usize];
+				let c = state.d[((HEIGHT - y - 1) * WIDTH + x) as usize];
 				draw_pixel(&mut canvas, x, y, Color::RGB(c.0, c.1, c.2));
 			}
 		}
