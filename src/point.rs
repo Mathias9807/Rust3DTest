@@ -4,12 +4,12 @@ use std::ops;
 
 use crate::{WIDTH, HEIGHT};
 
-pub const MIN_SCREEN: Vec2f = Vec2f([-5.0, -5.0]);
-pub const MAX_SCREEN: Vec2f = Vec2f([ 5.0,  5.0]);
+pub const MIN_SCREEN: Vec3f = Vec3f([-3.0, -3.0, -1.0]);
+pub const MAX_SCREEN: Vec3f = Vec3f([ 3.0,  3.0,  1.0]);
 
-pub fn toDCoords(p: Vec2f) -> Vec2f {
+pub fn toDCoords(p: Vec3f) -> Vec3f {
 	(p - MIN_SCREEN) / (MAX_SCREEN - MIN_SCREEN)
-	* Vec2f([WIDTH as f32, HEIGHT as f32])
+	* Vec3f([WIDTH as f32, HEIGHT as f32, 1.0])
 }
 
 pub fn lerp(a: f32, b: f32, v: f32) -> f32 {
@@ -189,6 +189,7 @@ impl Vec2f {
 	pub fn lerp(a: Vec2f, b: Vec2f, v: f32) -> Vec2f {
 		Vec2f([lerp(a[0],b[0],v), lerp(a[1],b[1],v)])
 	}
+	pub fn vec3f(&self, z: f32) -> Vec3f{ Vec3f([self.0[0], self.0[1], z]) }
 }
 impl Vec3f {
 	pub fn lerp(a: Vec3f, b: Vec3f, v: f32) -> Vec3f {

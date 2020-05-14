@@ -32,9 +32,11 @@ fn draw_loop(state: &mut GraphicsState, teapot: &Model) {
 		state.d[i] = ((i as u32 * 256 / (WIDTH*HEIGHT)) as u8, 0, 0);
 	}
 
+    state.clear_depth_buffer(f32::MIN);
+
     unsafe {
         // let mat = Mat4::identity().translate3f((T as f32).sin(), (T as f32).cos(), 0.);
-        let mat = Mat4::identity().rotate(Vec3f([1.,1.,1.]), (T as f32)/5.);
+        let mat = Mat4::identity().rotate(Vec3f([1.,1.,1.]), (T as f32)/5.).translate3f(0.,0.,0.5);
 
         state.draw_model(teapot, mat);
     }
@@ -81,11 +83,12 @@ fn create_window() -> (sdl2::Sdl, sdl2::VideoSubsystem, sdl2::render::Canvas<sdl
 fn main() {
 	let (sdl_context, _video_subsystem, mut canvas) = create_window();
 
-	let mut display = [(0u8, 0u8, 0u8); (WIDTH * HEIGHT) as usize];
+	let mut display = [(0u8, 0u8, 0u8); BUFFER_SIZE];
+	let mut depth_buffer = [0.; BUFFER_SIZE];
 
-    let mut state = GraphicsState{d: &mut display};
+    let mut state = GraphicsState{d: &mut display, depth_buffer: &mut depth_buffer};
 
-	let teapot: Model = Model::load_obj("res/teapot.obj");
+	let teapot: Model = Model::load_obj("res/suzanne.obj");
 
     VecTest();
 
