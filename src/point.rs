@@ -4,8 +4,8 @@ use std::ops;
 
 use crate::{WIDTH, HEIGHT};
 
-pub const MIN_SCREEN: Vec3f = Vec3f([-3.0, -3.0, -1.0]);
-pub const MAX_SCREEN: Vec3f = Vec3f([ 3.0,  3.0,  1.0]);
+pub const MIN_SCREEN: Vec3f = Vec3f([-2.0, -2.0, -1.0]);
+pub const MAX_SCREEN: Vec3f = Vec3f([ 2.0,  2.0,  1.0]);
 
 pub fn toDCoords(p: Vec3f) -> Vec3f {
 	(p - MIN_SCREEN) / (MAX_SCREEN - MIN_SCREEN)

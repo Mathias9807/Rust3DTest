@@ -43,15 +43,15 @@ fn draw_loop(state: &mut GraphicsState, teapot: &Model) {
 
 	// unsafe {
 	// 	let v0 = Vertex::new(0.0, 0.7, 0.0);
-	// 	let v1 = Vertex::new(-0.7, -0.0 + 0.5 * (T as f32 / 100.0).sin(), 0.0);
+	// 	let v1 = Vertex::new(-0.7, -0.0 + 0.5 * (T as f32 / 10.0).sin(), 0.0);
 	// 	let v2 = Vertex::new(0.7, -0.7, 0.0);
 	// 	let v3 = Vertex::new(-1.0, -0.7, 0.0);
 	// 	let v4 = Vertex::new(0.0, -1.0, 0.0);
-	// 	draw_tri(d, v0, v1, v2);
+	// 	state.draw_tri(v0, v1, v2);
 
-	// 	draw_tri(d, v3, v1, v2);
+	// 	state.draw_tri(v2, v1, v3);
 
-	// 	draw_tri(d, v3, v4, v2);
+	// 	state.draw_tri(v3, v4, v2);
 	// }
 }
 

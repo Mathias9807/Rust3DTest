@@ -38,11 +38,10 @@ impl GraphicsState<'_> {
     }
 
     /** Draw a horizontal line at row y between points a and b */
-    pub fn draw_scanline(&mut self, a:f32, b:f32, aZ:f32, bZ:f32, y:u32, c1:Vec3f, c2:Vec3f) {
+    pub fn draw_scanline(&mut self, a:f32, b:f32, aZ:f32, bZ:f32, y:i32, c1:Vec3f, c2:Vec3f) {
         let (mut min, mut max): (i32, i32);
         if a > b { min = b.round() as i32; max = a.round() as i32; }
         else { min = a.round() as i32; max = b.round() as i32; }
-        if y >= HEIGHT { return }
         min = min.max(0);
         max = max.min(WIDTH as i32 - 1);
         for x in min..max {
@@ -51,12 +50,12 @@ impl GraphicsState<'_> {
             let z = lerp(aZ, bZ, inter);
 
             // Z-buffering
-            if z < self.depth_buffer[(y * WIDTH + x as u32) as usize] { continue; }
+            if z < self.depth_buffer[(y * WIDTH as i32 + x) as usize] { continue; }
 
-            self.d[(y * WIDTH + x as u32) as usize].0 = (z / 2. *255.0) as u8;
-            self.d[(y * WIDTH + x as u32) as usize].1 = (z / 2. *255.0) as u8;
-            self.d[(y * WIDTH + x as u32) as usize].2 = (z / 2. *255.0) as u8;
-            self.depth_buffer[(y * WIDTH + x as u32) as usize] = z;
+            self.d[(y * WIDTH as i32 + x) as usize].0 = (z / 2. *255.0) as u8;
+            self.d[(y * WIDTH as i32 + x) as usize].1 = (z / 2. *255.0) as u8;
+            self.d[(y * WIDTH as i32 + x) as usize].2 = (z / 2. *255.0) as u8;
+            self.depth_buffer[(y * WIDTH as i32 + x) as usize] = z;
         }
     }
 
@@ -74,23 +73,23 @@ impl GraphicsState<'_> {
         let mid = lerp(list[0][0] as f32, list[2][0] as f32, midV);
         let midZ = lerp(list[0][2] as f32, list[2][2] as f32, midV);
 
-        for y in list[0][1].round().max(0.0) as u32..list[1][1].round() as u32 {
+        for y in list[0][1].round().max(0.0) as i32..list[1][1].round().min(HEIGHT as f32) as i32 {
             let v_a = (y as f32 - list[0][1]) / (list[2][1] - list[0][1]);
             let v_b = (y as f32 - list[0][1]) / (list[1][1] - list[0][1]);
-            let a = lerp(list[0][0] as f32, list[2][0] as f32, v_a);
-            let b = lerp(list[0][0] as f32, list[1][0], v_b);
-            let aZ = lerp(list[0][2] as f32, list[2][2] as f32, v_a);
-            let bZ = lerp(list[0][2] as f32, list[1][2], v_b);
+            let a = lerp(list[0][0], list[2][0], v_a);
+            let b = lerp(list[0][0], list[1][0], v_b);
+            let aZ = lerp(list[0][2], list[2][2], v_a);
+            let bZ = lerp(list[0][2], list[1][2], v_b);
             self.draw_scanline(a, b, aZ, bZ, y,
                    Vec3f([0.0,0.0,0.0]), Vec3f([1.0,1.0,1.0]));
         }
-        for y in list[1][1].round().max(0.0) as u32..list[2][1].round() as u32 {
+        for y in list[1][1].round().max(0.0) as i32..list[2][1].round().min(HEIGHT as f32) as i32 {
             let v_a = (y as f32 - list[1][1]) / (list[2][1] - list[1][1]);
             let v_b = (y as f32 - list[1][1]) / (list[2][1] - list[1][1]);
-            let a = lerp(list[1][0] as f32, list[2][0] as f32, v_a);
-            let b = lerp(mid, list[2][0] as f32, v_b);
-            let aZ = lerp(list[1][2] as f32, list[2][2] as f32, v_a);
-            let bZ = lerp(midZ, list[2][2] as f32, v_b);
+            let a = lerp(list[1][0], list[2][0], v_a);
+            let b = lerp(mid, list[2][0], v_b);
+            let aZ = lerp(list[1][2], list[2][2], v_a);
+            let bZ = lerp(midZ, list[2][2], v_b);
             self.draw_scanline(a, b, aZ, bZ, y,
                    Vec3f([0.0,0.0,0.0]), Vec3f([1.0,1.0,1.0]));
         }
