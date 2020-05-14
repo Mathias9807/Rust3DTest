@@ -22,7 +22,7 @@ impl Model {
 	
 		let obj = fs::read_to_string(file).expect("Couldn't read the file");
 	
-		let re = Regex::new(r"^(.?) ([-.0-9]+) ([-.0-9]+) ([-.0-9]+)$").unwrap();
+		let re = Regex::new(r"^(.?) ([-.0-9/]+) ([-.0-9/]+) ([-.0-9/]+)$").unwrap();
 		for line in obj.lines() {
 			let captures;
 			match re.captures(line) {
@@ -42,10 +42,13 @@ impl Model {
 				));
 			}
 			if t == "f" {
+                let mut splat0 = i0.split('/');
+                let mut splat1 = i1.split('/');
+                let mut splat2 = i2.split('/');
 				model.faces.push((
-					i0.parse::<usize>().unwrap() - 1,
-					i1.parse::<usize>().unwrap() - 1,
-					i2.parse::<usize>().unwrap() - 1,
+					splat0.next().unwrap().parse::<usize>().unwrap() - 1,
+					splat1.next().unwrap().parse::<usize>().unwrap() - 1,
+					splat2.next().unwrap().parse::<usize>().unwrap() - 1,
 				));
 			}
 		}
