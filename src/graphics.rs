@@ -43,7 +43,7 @@ impl GraphicsState<'_> {
         if a > b { min = b.round() as i32; max = a.round() as i32; }
         else { min = a.round() as i32; max = b.round() as i32; }
         min = min.max(0);
-        max = max.min(WIDTH as i32 - 1);
+        max = max.min(WIDTH as i32);
         for x in min..max {
             let inter = (x as f32 - a) / (b - a);
             let c = Vec3f::lerp(c1, c2, inter);
