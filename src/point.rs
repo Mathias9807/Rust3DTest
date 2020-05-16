@@ -155,9 +155,9 @@ macro_rules! declare_vec {
 		impl $type_name {
 			pub fn new(v: [$type; $size]) -> $type_name { $type_name(v) }
 
-            pub fn length(&self) -> f32 {
-                let mut l = 0.;
-                for i in 0..$size { l += self[i]*self[i]; } l.sqrt()
+            pub fn length(&self) -> $type {
+                let mut l = 0 as $type;
+                for i in 0..$size { l += self[i]*self[i]; } (l as f32).sqrt() as $type
             }
             pub fn normalize(&mut self) -> &mut $type_name {
                 *self = *self / self.length(); self
@@ -185,6 +185,9 @@ macro_rules! declare_vec {
 declare_vec!(Vec2f, 2, f32);
 declare_vec!(Vec3f, 3, f32);
 declare_vec!(Vec4f, 4, f32);
+declare_vec!(Vec2i, 2, i32);
+declare_vec!(Vec3i, 3, i32);
+declare_vec!(Vec4i, 4, i32);
 impl Vec2f {
 	pub fn lerp(a: Vec2f, b: Vec2f, v: f32) -> Vec2f {
 		Vec2f([lerp(a[0],b[0],v), lerp(a[1],b[1],v)])
